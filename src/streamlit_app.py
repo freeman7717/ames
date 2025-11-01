@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import pickle
 import plotly.express as px
 
@@ -368,3 +367,4 @@ with col3.container(border=True):
 
         # Показываем в Streamlit
         st.plotly_chart(fig)
+
