@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 import plotly.express as px
-
+import numpy as np
 
 st.title('Ames city house price prediction')
 st.set_page_config(layout="wide")
@@ -367,6 +367,7 @@ with col3.container(border=True):
 
         # Показываем в Streamlit
         st.plotly_chart(fig)
+
 
 
 
