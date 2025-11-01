@@ -21,11 +21,11 @@ The text of the study is available here:
 ```text
 real-estate-Ames/
 ├── .git/               # Git version control files
-├── data/               # Feature value lists for Streamlit
-├── doc/                # Dateset fields' description
-├── models/             # Trained model artifacts
+├── doc/                # Dataset fields' description
 ├── notebooks/          # Jupyter notebooks with EDA and model training 
 ├── src/                # Source code
+│   ├── data/               # Feature value lists for Streamlit
+│   ├── models/             # Trained model artifacts
 │   └── streamlit_app.py     # Code for the Streamlit web application
 ├── .gitignore          # Git ignore rules
 └── README.md           # Project description
