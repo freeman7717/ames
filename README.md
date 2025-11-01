@@ -26,7 +26,7 @@ real-estate-Ames/
 ├── src/                # Source code
 │   ├── data/               # Feature value lists for Streamlit
 │   ├── models/             # Trained model artifacts
-│   └── streamlit_app.py     # Code for the Streamlit web application
+│   └── streamlit_app.py    # Code for the Streamlit web application
 ├── .gitignore          # Git ignore rules
 └── README.md           # Project description
 ```
