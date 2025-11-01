@@ -9,7 +9,7 @@ The data are taken from the Ames Accessor's Office:
 ## Web Application
 
 A web application based on the developed model is available at:  
-[Streamlit App]([https://gg6gevpofl2gafmcecamwh.streamlit.app/])
+[Streamlit App](https://gg6gevpofl2gafmcecamwh.streamlit.app/)
 
 ## Study Text
 
