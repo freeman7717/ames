@@ -263,11 +263,11 @@ num = {         #min value, step, format
 def load_expensive_data():
     with open(base / "data" / "x_test.pickle", 'rb') as f:
         x = pickle.load(f)
-    with open('data/y_test.pickle', 'rb') as f:
+    with open(base / "data" / "y_test.pickle", 'rb') as f:
         y = pickle.load(f)
-    with open('models/clf_streamlit.pickle', 'rb') as f:
+    with open(base / "models" / "clf_streamlit.pickle", 'rb') as f:
         clf = pickle.load(f) 
-    with open('models/mdl_streamlit.pickle', 'rb') as f:
+    with open(base / "models" / "mdl_streamlit.pickle", 'rb') as f:
         model = pickle.load(f)   
     return x, y, clf, model
     
@@ -378,6 +378,7 @@ with col3.container(border=True):
 
         # Показываем в Streamlit
         st.plotly_chart(fig)
+
 
 
 
