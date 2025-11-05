@@ -250,7 +250,7 @@ num = {         #min value, step, format
 
 @st.cache_data
 def load_expensive_data():
-    with open('data/x_test.pickle', 'rb') as f:
+    with open('/data/x_test.pickle', 'rb') as f:
         x = pickle.load(f)
     with open('data/y_test.pickle', 'rb') as f:
         y = pickle.load(f)
@@ -367,6 +367,7 @@ with col3.container(border=True):
 
         # Показываем в Streamlit
         st.plotly_chart(fig)
+
 
 
 
