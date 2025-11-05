@@ -9,54 +9,10 @@ from pathlib import Path
 import streamlit as st
 import stat
 
-st.markdown("## Диагностика файловой системы (временная секция)")
-
 # где процесс считает текущую директорию
 cwd = Path.cwd()
 this_file = Path(__file__).resolve()
 base = this_file.parent  # папка src/
-st.write("cwd:", str(cwd))
-st.write("__file__ resolved:", str(this_file))
-st.write("base (parent of __file__):", str(base))
-
-# показать содержимое предполагаемых директорий
-def list_dir(p):
-    try:
-        return [str(x) for x in Path(p).iterdir()]
-    except Exception as e:
-        return f"Ошибка при listdir({p}): {e}"
-
-st.write("Содержимое cwd:", list_dir(cwd))
-st.write("Содержимое base:", list_dir(base))
-st.write("Содержимое base/data:", list_dir(base / "data"))
-st.write("Содержимое base/../data:", list_dir(base.parent / "data"))
-
-# проверить конкретные пути
-paths = [
-    base / "data" / "x_test.pickle",
-    Path("data") / "x_test.pickle",
-    Path("/data") / "x_test.pickle",
-    Path("/mnt/data") / "x_test.pickle",
-    base.parent / "data" / "x_test.pickle",
-]
-for p in paths:
-    info = {
-        "path": str(p),
-        "exists": p.exists(),
-        "is_file": p.is_file(),
-    }
-    if p.exists():
-        try:
-            s = p.stat()
-            info.update({
-                "size": s.st_size,
-                "mode": oct(s.st_mode),
-                "uid": s.st_uid,
-                "gid": s.st_gid,
-            })
-        except Exception as e:
-            info["stat_error"] = str(e)
-    st.write(info)
 
 
 st.title('Ames city house price prediction')
@@ -305,7 +261,7 @@ num = {         #min value, step, format
 
 @st.cache_data
 def load_expensive_data():
-    with open('data/x_test.pickle', 'rb') as f:
+    with open(base / "data" / "x_test.pickle", 'rb') as f:
         x = pickle.load(f)
     with open('data/y_test.pickle', 'rb') as f:
         y = pickle.load(f)
@@ -422,6 +378,7 @@ with col3.container(border=True):
 
         # Показываем в Streamlit
         st.plotly_chart(fig)
+
 
 
 
