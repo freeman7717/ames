@@ -1,3 +1,6 @@
+Student: Abramov Petr Alexandrovich
+Supervisor: Sanochkin Yuri Ilyich
+
 # Predicting Residential Real Estate Prices in Ames
 
 ## Project Description
@@ -14,7 +17,7 @@ A web application based on the developed model is available at:
 ## Study Text
 
 The text of the study is available here:  
-[Link to the study text](https://disk.yandex.ru/i/ESI3n31Nb0altw)
+[Link to the study text](https://disk.360.yandex.ru/i/xtKncI-bO0Jg7w)
 
 ## Project Structure
 
