@@ -3,386 +3,183 @@ import pandas as pd
 import pickle
 import plotly.express as px
 import numpy as np
-
-import os
 from pathlib import Path
-import streamlit as st
-import stat
 
-# где процесс считает текущую директорию
-cwd = Path.cwd()
-this_file = Path(__file__).resolve()
-base = this_file.parent  # папка src/
+from config import CAT, CAT_GROUPS, NUM, NUM_GROUPS, ORDINAL, ONE_STORY_STYLES
 
+st.set_page_config(layout="wide", page_title="Ames House Price Prediction")
 
-st.title('Ames city house price prediction')
-st.set_page_config(layout="wide")
+base = Path(__file__).resolve().parent
 
-ordinal = ['Overall Cond', 'MS SubClass', 'Overall Qual']
-
-cat = {
-    'MS SubClass':[
-        '20 1-STORY 1946 & NEWER ALL STYLES',
-        '30 1-STORY 1945 & OLDER',
-        '40 1-STORY W/FINISHED ATTIC ALL AGES',
-        '45 1-1/2 STORY - UNFINISHED ALL AGES',
-        '50 1-1/2 STORY FINISHED ALL AGES',
-        '60 2-STORY 1946 & NEWER',
-        '70 2-STORY 1945 & OLDER',
-        '75 2-1/2 STORY ALL AGES',
-        '80 SPLIT OR MULTI-LEVEL',
-        '85 SPLIT FOYER',
-        '90 DUPLEX - ALL STYLES AND AGES',
-        '120 1-STORY PUD (Planned Unit Development) - 1946 & NEWER',
-        '150 1-1/2 STORY PUD - ALL AGES',
-        '160 2-STORY PUD - 1946 & NEWER',
-        '180 PUD - MULTILEVEL - INCL SPLIT LEV/FOYER',
-        '190 2 FAMILY CONVERSION - ALL STYLES AND AGES'
-    ],
-    'Overall Qual':[
-        '10 Very Excellent',
-        '9 Excellent',
-        '8 Very Good',
-        '7 Good',
-        '6 Above Average',
-        '5 Average',
-        '4 Below Average',
-        '3 Fair',
-        '2 Poor',
-        '1 Very Poor'
-        ],
-    'MS Zoning': [
-        'A Agriculture',
-        'C Commercial',
-        'FV Floating Village Residential',
-        'I Industrial',
-        'RH Residential High Density',
-        'RL Residential Low Density',
-        'RP Residential Low Density Park',
-        'RM Residential Medium Density',
- ],
-    'Lot Shape': [
-        'Reg Regular', 
-        'IR1 Slightly irregular',
-        'IR2 Moderately Irregular',
-        'IR3 Irregular',
-        ],
-    'Overall Cond':[
-        '10 Very Excellent',
-        '9 Excellent',
-        '8 Very Good',
-        '7 Good',
-        '6 Above Average',
-        '5 Average',
-        '4 Below Average',
-        '3 Fair',
-        '2 Poor',
-        '1 Very Poor'
-    ],
-'Land Contour':[
- 'Lvl Near Flat/Level', 
- 'Bnk Banked - Quick and significant rise from street grade to building',
- 'HLS Hillside - Significant slope from side to side',
- 'Low Depression'
- ],
-
-'Lot Config': [
- 'Inside Inside lot',
- 'Corner Corner lot',
- 'CulDSac Cul-de-sac',
- 'FR2 Frontage on 2 sides of property',
- 'FR3 Frontage on 3 sides of property'
- ],
-'Condition 1':[
- 'Artery Adjacent to arterial street',
- 'Feedr Adjacent to feeder street ',
- 'Norm Normal ',
- 'RRNn Within 200\' of North-South Railroad',
- 'RRAn Adjacent to North-South Railroad',
- 'PosN Near positive off-site feature--park, greenbelt, etc.',
- 'PosA Adjacent to postive off-site feature',
- 'RRNe Within 200\' of East-West Railroad',
- 'RRAe Adjacent to East-West Railroad'
- ],
-'Bldg Type':[
- '1Fam Single-family Detached',
- '2FmCon Two-family Conversion; originally built as one-family dwelling',
- 'Duplx Duplex',
- 'TwnhsE Townhouse End Unit',
- 'TwnhsI Townhouse Inside Unit'
- ],
-'House Style':[
- '1Story One story',
- '1.5Fin One and one-half story: 2nd level finished',
- '1.5Unf One and one-half story: 2nd level unfinished',
- '2Story Two story',
- '2.5Fin Two and one-half story: 2nd level finished',
- '2.5Unf Two and one-half story: 2nd level unfinished',
- 'SFoyer Split Foyer',
- 'SLvl Split Level',
- ],
-'Roof Style':[
- 'Flat Flat',
- 'Gable Gable',
- 'Gambrel Gabrel (Barn)',
- 'Hip Hip',
- 'Mansard Mansard'
- 'Shed Shed',
- ],
-'Exterior 1st':[
- 'AsbShng Asbestos Shingles',
- 'AsphShn Asphalt Shingles',
- 'BrkComm Brick Common',
- 'BrkFace Brick Face',
- 'CBlock Cinder Block',
- 'CemntBd Cement Board',
- 'HdBoard Hard Board',
- 'ImStucc Imitation Stucco',
- 'MetalSd Metal Siding',
- 'Other Other',
- 'Plywood Plywood',
- 'PreCast PreCast',
- 'Stone Stone',
- 'Stucco Stucco',
- 'VinylSd Vinyl Siding',
- 'Wd Sdng Wood Siding',
- 'WdShing Wood Shingles'
- ],
-'Exterior 2nd':[
- 'AsbShng Asbestos Shingles',
- 'AsphShn Asphalt Shingles',
- 'BrkComm Brick Common',
- 'BrkFace Brick Face',
- 'CBlock Cinder Block',
- 'CemntBd Cement Board',
- 'HdBoard Hard Board',
- 'ImStucc Imitation Stucco',
- 'MetalSd Metal Siding',
- 'Other Other',
- 'Plywood Plywood',
- 'PreCast PreCast',
- 'Stone Stone',
- 'Stucco Stucco',
- 'VinylSd Vinyl Siding',
- 'Wd Sdng Wood Siding',
- 'WdShing Wood Shingles'
- ],
-'Exter Qual':[
- 'Ex Excellent',
- 'Gd Good',
- 'TA Average/Typical',
- 'Fa Fair',
- 'Po Poor',
- ],
-'Exter Cond':[
- 'Ex Excellent',
- 'Gd Good',
- 'TA Average/Typical',
- 'Fa Fair',
- 'Po Poor'
- ],
-'Foundation':[
- 'BrkTil Brick & Tile',
- 'CBlock Cinder Block',
- 'PConc Poured Contrete',
- 'Slab Slab',
- 'Stone Stone',
- 'Wood Wood',
- ],
-'Bsmt Cond':[
- 'Ex Excellent',
- 'Gd Good',
- 'TA Typical - slight dampness allowed',
- 'Fa Fair - dampness or some cracking or settling',
- 'Po Poor - Severe cracking, settling, or wetness',
- 'NA No Basement'
- ],
-'Heating QC':[
- 'Ex Excellent',
- 'Gd Good',
- 'TA Average/Typical',
- 'Fa Fair',
- 'Po Poor'
- ],
-'Central Air':[
- 'N No',
- 'Y Yes',
- ],
-'Kitchen Qual':[
- 'Ex Excellent',
- 'Gd Good',
- 'TA Typical/Average',
- 'Fa Fair',
- 'Po Poor',
- ],
-'Garage Type':[
- '2Types More than one type of garage',
- 'Attchd Attached to home',
- 'Basment Basement Garage'
- 'BuiltIn Built-In (Garage part of house - typically has room above garage)'
- 'CarPort Car Port',
- 'Detchd Detached from home',
- 'NA No Garage'
- ],
-'Garage Finish':[
- 'Fin Finished',
- 'RFn Rough Finished',
- 'Unf Unfinished',
- 'NA No Garage'
- ],
-'Garage Qual':[
- 'Ex Excellent',
- 'Gd Good',
- 'TA Typical/Average',
- 'Fa Fair',
- 'Po Poor',
- 'NA No Garage'
- ]
-    }
-
-num = {         #min value, step, format
- 'Gr Liv Area': [0, 1, "%i"],  
- 'Lot Frontage': [0.0, 1.0, "%.3f"], 
- 'Lot Area': [0, 1, "%i"], 
- 'Year Built': [1864, 1, "%i"], 
- 'Year Remod/Add': [1864, 1, "%i"], 
- 'Total Bsmt SF': [0.0, 1.0, "%.3f"], 
- '2nd Flr SF': [0, 1, "%i"], 
- 'Bsmt Full Bath': [0.0, 1.0, "%.3f"], 
- 'Full Bath': [0, 1, "%i"], 
- 'Half Bath': [0, 1, "%i"], 
- 'Bedroom AbvGr': [0, 1, "%i"], 
- 'TotRms AbvGrd': [0, 1, "%i"], 
- 'Fireplaces': [0, 1, "%i"], 
- 'Garage Area': [0.0, 1.0, "%.3f"], 
- 'Wood Deck SF': [0, 1, "%i"], 
- 'Open Porch SF': [0, 1, "%i"]
-}
 
 @st.cache_data
-def load_expensive_data():
-    with open(base / "data" / "x_test.pickle", 'rb') as f:
-        x = pickle.load(f)
-    with open(base / "data" / "y_test.pickle", 'rb') as f:
-        y = pickle.load(f)
-    with open(base / "models" / "clf_streamlit.pickle", 'rb') as f:
-        clf = pickle.load(f) 
-    with open(base / "models" / "mdl_streamlit.pickle", 'rb') as f:
-        model = pickle.load(f)   
-    return x, y, clf, model
-    
-x, y, clf, model = load_expensive_data()      
+def load_data():
+    try:
+        with open(base / "data"   / "x_test.pickle",       "rb") as f: x     = pickle.load(f)
+        with open(base / "data"   / "y_test.pickle",       "rb") as f: y     = pickle.load(f)
+        with open(base / "models" / "clf_streamlit.pickle", "rb") as f: clf   = pickle.load(f)
+        with open(base / "models" / "mdl_streamlit.pickle", "rb") as f: model = pickle.load(f)
+        return x, y, clf, model
+    except FileNotFoundError as e:
+        st.error(
+            f"**Required file not found:** `{e.filename}`\n\n"
+            "Make sure the `data/` and `models/` folders are next to `streamlit_app.py` "
+            "and contain the four pickle files."
+        )
+        st.stop()
+    except Exception as e:
+        st.error(f"**Failed to load model files:** {e}")
+        st.stop()
 
+
+x, y, clf, model = load_data()
 max_row = x.shape[0] - 1
 
-line = st.slider("Select the object number from the test sample and click on the Update button", 
-                    min_value=0, max_value=max_row, value=0, step=1)
 
-def read_line(line): 
-    
+def _cat_index(field_name: str, raw_value: str) -> int:
+    """Return the selectbox index for a categorical field value."""
+    options = CAT[field_name]
+    for i, item in enumerate(options):
+        if raw_value == item[: item.find(" ")]:
+            return i
+    return 0
+
+
+def read_line(line: int):
+    """Load row *line* from x into session_state."""
     x_row = x.iloc[line]
 
-    for name in num:
-        st.session_state[name] = x_row[name]
+    for name, (lo, hi, *_) in NUM.items():
+        raw = x_row[name]
+        st.session_state[name] = int(np.clip(round(float(raw)), lo, hi))
 
-    for name in cat:
-        x_ = str(x_row[name])
-        items = cat[name]
-        index = -1
-        for i in range(len(items)):
-            item = items[i]
-            if x_ == item[ : item.find(' ')]:
-                index = i
-                break
-        st.session_state[name] = index
-    
+    for name in CAT:
+        idx = _cat_index(name, str(x_row[name]))
+        st.session_state[name] = idx
+        st.session_state[f"cat_{name}"] = CAT[name][idx]
 
-if st.button('Update') or 'MS SubClass' not in st.session_state:
-    read_line(line)
 
+def on_slider_change():
+    read_line(st.session_state["line_slider"])
+
+
+if "initialized" not in st.session_state:
+    read_line(0)
+    st.session_state["initialized"] = True
+
+st.title("Ames city house price prediction")
+
+st.slider(
+    "Select record number from the test sample",
+    min_value=0, max_value=max_row, value=0, step=1,
+    key="line_slider",
+    on_change=on_slider_change,
+)
 
 col1, col2, col3 = st.columns(3)
 
-num_input = {}
 
+num_input = {}
 with col1.container(border=True):
     st.subheader("Numerical attributes")
-    for name in num:
-        num_input[name] = st.number_input("Enter " + name + ":", 
-#                        value=st.session_state[name], 
-                        min_value = num[name][0],
-                        step = num[name][1],
-                        format = num[name][2],
-                        key = name)    
+    for group_label, fields in NUM_GROUPS.items():
+        with st.expander(group_label, expanded=False):
+            for name, (lo, hi, step, fmt) in fields.items():
+                num_input[name] = st.number_input(
+                    f"Enter {name}:",
+                    min_value=lo,
+                    max_value=hi,
+                    step=step,
+                    format=fmt,
+                    key=name,
+                )
+
 
 cat_button = {}
-
 with col2.container(border=True):
     st.subheader("Categorical attributes")
-    for name in cat:
-       
-        cat_button[name] = st.selectbox("Select " + name + ":", cat[name])
-                             #index = st.session_state[name]),
-                         
+    for group_label, fields in CAT_GROUPS.items():
+        with st.expander(group_label, expanded=False):
+            for name, options in fields.items():
+                cat_button[name] = st.selectbox(
+                    f"Select {name}:",
+                    options,
+                    index=st.session_state.get(name, 0),
+                    key=f"cat_{name}",
+                )
+
+
+def run_validation() -> list[str]:
+    warnings = []
+
+    year_built    = num_input.get("Year Built", 0)
+    year_remod    = num_input.get("Year Remod/Add", 0)
+    flr2          = num_input.get("2nd Flr SF", 0)
+    house_style   = cat_button.get("House Style", "")
+    style_code    = house_style[: house_style.find(" ")] if house_style else ""
+
+    if year_remod and year_built and year_remod < year_built:
+        warnings.append(
+            f"**Year Remod/Add** ({year_remod}) is earlier than **Year Built** ({year_built})."
+        )
+
+    if flr2 > 0 and style_code in ONE_STORY_STYLES:
+        warnings.append(
+            f"**2nd Flr SF** is {flr2} ft² but house style is **{house_style}** (one-storey)."
+        )
+
+    return warnings
+
 
 with col3.container(border=True):
     st.subheader("Calculation results")
- 
- 
+
+    current_line = st.session_state.get("line_slider", 0)
+    real_price   = float(y.iloc[current_line]) * 1000
+    st.caption(f"Real price (test set): **${real_price:,.0f}**")
+
+    validation_warnings = run_validation()
+    for w in validation_warnings:
+        st.warning(w)
+
     if st.button("Estimate cost"):
-
-        columns = list(num.keys()) + list(cat.keys())
+        columns = list(NUM.keys()) + list(CAT.keys())
         data = []
-        for name in num:
+
+        for name in NUM:
             data.append(num_input[name])
-        for name in cat:
+
+        for name in CAT:
             row = cat_button[name]
-            #col3.write(name + ' ' + row)
-            row = row[:row.find(' ')]
-            if name in ordinal:
-                data.append(int(row))
-            else:
-                data.append(row)
+            code = row[: row.find(" ")]
+            data.append(int(code) if name in ORDINAL else code)
 
-        X_test = pd.DataFrame(columns=columns,data=[data])
-        
-        #way = 'Pipeline'
-        way = 'Soft Voting'
+        X_input = pd.DataFrame(columns=columns, data=[data])
 
-        y_class = clf.predict(X_test)
-        probs = clf.predict_proba(X_test)
-        probs = probs[0]
-        y_pred = np.zeros(len(X_test))
+        y_class = clf.predict(X_input)
+        probs   = clf.predict_proba(X_input)[0]
 
-        if way == 'Pipeline':
-            x_row = X_test
-            y_pred = model[y_class.item()].predict(x_row)[0]
-        else:
-            x_row = X_test
-            pred0 = model[0].predict(x_row)[0]
-            pred1 = model[1].predict(x_row)[0]
-            pred2 = model[2].predict(x_row)[0]
-            pred3 = model[3].predict(x_row)[0]
-            y_pred = probs[0] * pred0 + probs[1] * pred1 + probs[2] * pred2 + probs[3] * pred3
+        pred0 = model[0].predict(X_input)[0]
+        pred1 = model[1].predict(X_input)[0]
+        pred2 = model[2].predict(X_input)[0]
+        pred3 = model[3].predict(X_input)[0]
+        price = (probs[0]*pred0 + probs[1]*pred1 + probs[2]*pred2 + probs[3]*pred3) * 1000
 
-        price = y_pred.item()
-        st.write(f'Estimated cost: ${price*1000:,.0f}')
-        
-        df = pd.DataFrame({
-        "Category": ["Economy", "Comfort", "Business", "Luxury"],
-        "Probability": probs
+        error_pct = (price - real_price) / real_price * 100
+
+        st.metric(
+            label="Estimated price",
+            value=f"${price:,.0f}",
+            delta=f"{error_pct:+.1f}% vs real",
+            delta_color="inverse",
+        )
+
+        df_probs = pd.DataFrame({
+            "Category":    ["Economy", "Comfort", "Business", "Luxury"],
+            "Probability": probs,
         })
-
-        # Создаём график
-        fig = px.bar(df, x='Category', y="Probability", title="Probability of category membership")
-
-        # Показываем в Streamlit
-        st.plotly_chart(fig)
-
-
-
-
-
-
-
-
+        fig = px.bar(
+            df_probs, x="Category", y="Probability",
+            title="Probability of price-category membership",
+        )
+        st.plotly_chart(fig, use_container_width=True)
